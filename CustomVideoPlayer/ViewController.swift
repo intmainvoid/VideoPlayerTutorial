@@ -17,6 +17,8 @@ class ViewController: UIViewController {
     var invisibleButton: UIButton = UIButton();
     var timeRemainingLabel: UILabel = UILabel();
     var timeObserver: AnyObject!;
+    var seekSlider: UISlider = UISlider();
+    var playerRateBeforeSeek: Float = 0;
 
     override func viewDidLoad()
     {
@@ -40,10 +42,16 @@ class ViewController: UIViewController {
         self.timeObserver = self.avPlayer.addPeriodicTimeObserverForInterval(timeInterval, queue: dispatch_get_main_queue()) { (elapsedTime: CMTime) -> Void in
             let duration = CMTimeGetSeconds(self.avPlayer.currentItem.duration);
             if (isfinite(duration)) {
-                let timeRemaining = CMTimeGetSeconds(self.avPlayer.currentItem.duration) - CMTimeGetSeconds(elapsedTime)
-                self.timeRemainingLabel.text = String(format: "%02.f:%02.f", (floor(timeRemaining / 60)) % 60, timeRemaining % 60)
+                let elapsedTime = CMTimeGetSeconds(elapsedTime)
+                self.updateTimeLabel(elapsedTime)
+                self.seekSlider.value = Float(elapsedTime / duration)
             }
         }
+
+        self.view.addSubview(seekSlider)
+        self.seekSlider.addTarget(self, action: "sliderBeganTracking:", forControlEvents: UIControlEvents.TouchDown)
+        self.seekSlider.addTarget(self, action: "sliderEndedTracking:", forControlEvents: UIControlEvents.TouchUpInside | UIControlEvents.TouchUpOutside)
+        self.seekSlider.addTarget(self, action: "sliderValueChanged:", forControlEvents: UIControlEvents.ValueChanged)
     }
 
     deinit
@@ -59,10 +67,16 @@ class ViewController: UIViewController {
     override func viewWillLayoutSubviews()
     {
         super.viewWillLayoutSubviews()
+        
         self.avPlayerLayer.frame = self.view.bounds;
         self.invisibleButton.frame = self.view.bounds;
-        let timeRemainingLabelY = self.view.bounds.size.height - 25;
-        self.timeRemainingLabel.frame = CGRectMake(0, timeRemainingLabelY, 60, 25)
+        let controlsHeight: CGFloat = 30
+        let controlsY = self.view.bounds.size.height - controlsHeight;
+        self.timeRemainingLabel.frame = CGRectMake(0, controlsY, 60, controlsHeight)
+        self.seekSlider.frame = CGRectMake(timeRemainingLabel.frame.origin.x + timeRemainingLabel.bounds.size.width,
+            controlsY,
+            self.view.bounds.size.width - self.timeRemainingLabel.bounds.size.width,
+            controlsHeight)
     }
 
     override func supportedInterfaceOrientations() -> Int
@@ -78,6 +92,35 @@ class ViewController: UIViewController {
         } else {
             self.avPlayer.play();
         }
+    }
+
+    func sliderBeganTracking(slider: UISlider!)
+    {
+        self.playerRateBeforeSeek = self.avPlayer.rate
+        self.avPlayer.pause()
+    }
+
+    func sliderEndedTracking(slider: UISlider!)
+    {
+        let elapsedTime: Float64 = CMTimeGetSeconds(self.avPlayer.currentItem.duration) * Float64(self.seekSlider.value)
+        self.updateTimeLabel(elapsedTime)
+        self.avPlayer.seekToTime(CMTimeMakeWithSeconds(elapsedTime, 10), completionHandler: { (completed: Bool) -> Void in
+            if (self.playerRateBeforeSeek > 0) {
+                self.avPlayer.play()
+            }
+        })
+    }
+
+    func sliderValueChanged(slider: UISlider!)
+    {
+        let elapsedTime: Float64 = CMTimeGetSeconds(self.avPlayer.currentItem.duration) * Float64(self.seekSlider.value)
+        self.updateTimeLabel(elapsedTime)
+    }
+
+    func updateTimeLabel(elapsedTime: Float64)
+    {
+        let timeRemaining: Float64 = CMTimeGetSeconds(self.avPlayer.currentItem.duration) - elapsedTime
+        self.timeRemainingLabel.text = String(format: "%02.f:%02.f", (floor(timeRemaining / 60)) % 60, timeRemaining % 60)
     }
 
 }
