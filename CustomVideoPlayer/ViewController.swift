@@ -9,16 +9,19 @@
 import UIKit
 import AVFoundation
 
+let playbackLikelyToKeepUpContext = UnsafeMutablePointer<(Void)>()
+
 class ViewController: UIViewController {
 
-    var avPlayerView: UIView = UIView();
-    var avPlayer: AVPlayer = AVPlayer();
+    var avPlayerView: UIView = UIView()
+    var avPlayer: AVPlayer = AVPlayer()
     var avPlayerLayer: AVPlayerLayer!
-    var invisibleButton: UIButton = UIButton();
-    var timeRemainingLabel: UILabel = UILabel();
-    var timeObserver: AnyObject!;
-    var seekSlider: UISlider = UISlider();
-    var playerRateBeforeSeek: Float = 0;
+    var invisibleButton: UIButton = UIButton()
+    var timeRemainingLabel: UILabel = UILabel()
+    var timeObserver: AnyObject!
+    var seekSlider: UISlider = UISlider()
+    var playerRateBeforeSeek: Float = 0
+    var loadingIndicatorView: UIActivityIndicatorView = UIActivityIndicatorView(activityIndicatorStyle: UIActivityIndicatorViewStyle.WhiteLarge)
 
     override func viewDidLoad()
     {
@@ -52,11 +55,27 @@ class ViewController: UIViewController {
         self.seekSlider.addTarget(self, action: "sliderBeganTracking:", forControlEvents: UIControlEvents.TouchDown)
         self.seekSlider.addTarget(self, action: "sliderEndedTracking:", forControlEvents: UIControlEvents.TouchUpInside | UIControlEvents.TouchUpOutside)
         self.seekSlider.addTarget(self, action: "sliderValueChanged:", forControlEvents: UIControlEvents.ValueChanged)
+
+        self.loadingIndicatorView.hidesWhenStopped = true
+        self.view.addSubview(self.loadingIndicatorView)
+        self.avPlayer.addObserver(self, forKeyPath: "currentItem.playbackLikelyToKeepUp", options: NSKeyValueObservingOptions.New, context: playbackLikelyToKeepUpContext)
+    }
+
+    override func observeValueForKeyPath(keyPath: String, ofObject object: AnyObject, change: [NSObject : AnyObject], context: UnsafeMutablePointer<Void>)
+    {
+        if (context == playbackLikelyToKeepUpContext) {
+            if (self.avPlayer.currentItem.playbackLikelyToKeepUp) {
+                self.loadingIndicatorView.stopAnimating()
+            } else {
+                self.loadingIndicatorView.startAnimating()
+            }
+        }
     }
 
     deinit
     {
         self.avPlayer.removeTimeObserver(self.timeObserver)
+        self.avPlayer.removeObserver(self, forKeyPath: "currentItem.playbackLikelyToKeepUp")
     }
 
     override func viewWillAppear(animated: Bool)
@@ -77,6 +96,7 @@ class ViewController: UIViewController {
             controlsY,
             self.view.bounds.size.width - self.timeRemainingLabel.bounds.size.width,
             controlsHeight)
+        self.loadingIndicatorView.center = CGPointMake(self.view.bounds.size.width / 2, self.view.bounds.size.height / 2)
     }
 
     override func supportedInterfaceOrientations() -> Int
