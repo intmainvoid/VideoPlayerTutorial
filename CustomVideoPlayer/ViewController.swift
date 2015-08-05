@@ -80,6 +80,7 @@ class ViewController: UIViewController {
 
     override func viewWillAppear(animated: Bool)
     {
+        self.loadingIndicatorView.startAnimating()
         self.avPlayer.play()
     }
 
