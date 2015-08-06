@@ -1,5 +1,5 @@
 //
-//  ViewController.swift
+//  AVPlayerViewController.swift
 //  CustomVideoPlayer
 //
 //  Created by Gavin Conway on 05/08/2015.
@@ -11,7 +11,7 @@ import AVFoundation
 
 let playbackLikelyToKeepUpContext = UnsafeMutablePointer<(Void)>()
 
-class ViewController: UIViewController {
+class AVPlayerViewController: UIViewController {
 
     var avPlayerView: UIView = UIView()
     var avPlayer: AVPlayer = AVPlayer()
