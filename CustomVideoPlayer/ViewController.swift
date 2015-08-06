@@ -46,7 +46,7 @@ class ViewController: UIViewController {
             let duration = CMTimeGetSeconds(self.avPlayer.currentItem.duration);
             if (isfinite(duration)) {
                 let elapsedTime = CMTimeGetSeconds(elapsedTime)
-                self.updateTimeLabel(elapsedTime)
+                self.updateTimeLabel(elapsedTime, duration: duration)
                 self.seekSlider.value = Float(elapsedTime / duration)
             }
         }
@@ -87,17 +87,20 @@ class ViewController: UIViewController {
     override func viewWillLayoutSubviews()
     {
         super.viewWillLayoutSubviews()
-        
+
         self.avPlayerLayer.frame = self.view.bounds;
         self.invisibleButton.frame = self.view.bounds;
         let controlsHeight: CGFloat = 30
         let controlsY = self.view.bounds.size.height - controlsHeight;
         self.timeRemainingLabel.frame = CGRectMake(0, controlsY, 60, controlsHeight)
-        self.seekSlider.frame = CGRectMake(timeRemainingLabel.frame.origin.x + timeRemainingLabel.bounds.size.width,
+        self.seekSlider.frame = CGRectMake(
+            timeRemainingLabel.frame.origin.x + timeRemainingLabel.bounds.size.width,
             controlsY,
             self.view.bounds.size.width - self.timeRemainingLabel.bounds.size.width,
             controlsHeight)
-        self.loadingIndicatorView.center = CGPointMake(self.view.bounds.size.width / 2, self.view.bounds.size.height / 2)
+        self.loadingIndicatorView.center = CGPointMake(
+            CGRectGetMidX(self.view.bounds),
+            CGRectGetMidY(self.view.bounds))
     }
 
     override func supportedInterfaceOrientations() -> Int
@@ -123,8 +126,9 @@ class ViewController: UIViewController {
 
     func sliderEndedTracking(slider: UISlider!)
     {
-        let elapsedTime: Float64 = CMTimeGetSeconds(self.avPlayer.currentItem.duration) * Float64(self.seekSlider.value)
-        self.updateTimeLabel(elapsedTime)
+        let videoDuration = CMTimeGetSeconds(self.avPlayer.currentItem.duration)
+        let elapsedTime: Float64 = videoDuration * Float64(self.seekSlider.value)
+        self.updateTimeLabel(elapsedTime, duration: videoDuration)
         self.avPlayer.seekToTime(CMTimeMakeWithSeconds(elapsedTime, 10), completionHandler: { (completed: Bool) -> Void in
             if (self.playerRateBeforeSeek > 0) {
                 self.avPlayer.play()
@@ -134,11 +138,12 @@ class ViewController: UIViewController {
 
     func sliderValueChanged(slider: UISlider!)
     {
-        let elapsedTime: Float64 = CMTimeGetSeconds(self.avPlayer.currentItem.duration) * Float64(self.seekSlider.value)
-        self.updateTimeLabel(elapsedTime)
+        let videoDuration = CMTimeGetSeconds(self.avPlayer.currentItem.duration)
+        let elapsedTime: Float64 = videoDuration * Float64(self.seekSlider.value)
+        self.updateTimeLabel(elapsedTime, duration: videoDuration)
     }
 
-    func updateTimeLabel(elapsedTime: Float64)
+    func updateTimeLabel(elapsedTime: Float64, duration: Float64)
     {
         let timeRemaining: Float64 = CMTimeGetSeconds(self.avPlayer.currentItem.duration) - elapsedTime
         self.timeRemainingLabel.text = String(format: "%02.f:%02.f", (floor(timeRemaining / 60)) % 60, timeRemaining % 60)
