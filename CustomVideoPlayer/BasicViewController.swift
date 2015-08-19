@@ -6,6 +6,7 @@
 //  Copyright (c) 2015 Binary Mosaic. All rights reserved.
 //
 
+import UIKit
 import MediaPlayer
 
 class BasicViewController: UIViewController
@@ -14,9 +15,9 @@ class BasicViewController: UIViewController
     {
         super.viewDidAppear(animated)
 
-        var movieController: MPMoviePlayerViewController = MPMoviePlayerViewController(
+        let movieController: MPMoviePlayerViewController = MPMoviePlayerViewController(
             contentURL: NSURL(string: "http://content.jwplatform.com/manifests/vM7nH0Kl.m3u8"))
-        self.presentMoviePlayerViewControllerAnimated(movieController)
+        presentMoviePlayerViewControllerAnimated(movieController)
         movieController.moviePlayer.play()
     }
 }
