@@ -23,8 +23,6 @@
 import UIKit
 import AVFoundation
 
-let playbackLikelyToKeepUpContext = UnsafeMutablePointer<(Void)>()
-
 class AVPlayerViewController: UIViewController {
   var avPlayer = AVPlayer()
   var avPlayerLayer: AVPlayerLayer!
@@ -34,6 +32,7 @@ class AVPlayerViewController: UIViewController {
   var seekSlider = UISlider()
   var playerRateBeforeSeek: Float = 0.0
   var loadingIndicatorView = UIActivityIndicatorView(activityIndicatorStyle: UIActivityIndicatorViewStyle.WhiteLarge)
+  let playbackLikelyToKeepUpContext = UnsafeMutablePointer<(Void)>()
 
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -153,7 +152,7 @@ class AVPlayerViewController: UIViewController {
 
   private func updateTimeLabel(#elapsedTime: Float64, duration: Float64) {
     let timeRemaining: Float64 = CMTimeGetSeconds(avPlayer.currentItem.duration) - elapsedTime
-    timeRemainingLabel.text = String(format: "%02.f:%02.f", (floor(timeRemaining / 60)) % 60, timeRemaining % 60)
+    timeRemainingLabel.text = String(format: "%02d:%02d", ((lround(timeRemaining) / 60) % 60), lround(timeRemaining) % 60)
   }
 
   private func observeTime(elapsedTime: CMTime) {
