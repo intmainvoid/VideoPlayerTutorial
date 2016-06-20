@@ -159,6 +159,8 @@
 		1F8CD8341B71885300074D25 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftMigration = 0730;
+				LastSwiftUpdateCheck = 0730;
 				LastUpgradeCheck = 0640;
 				ORGANIZATIONNAME = "Binary Mosaic";
 				TargetAttributes = {
